@@ -15,7 +15,7 @@ for (const path of modules) {
     if (!path.endsWith('.js')) continue;
     const realPath = normalize(`${cwd}/${path}`);
     const source = await readFile(realPath);
-    ExtAnalyzer.analyze(source, path, realPath);
+    ExtAnalyzer.analyze(source.toString(), path, realPath);
 
     for (const key in ExtAnalyzer.fileMap) {
         if (Object.hasOwnProperty.call(ExtAnalyzer.fileMap, key)) {
