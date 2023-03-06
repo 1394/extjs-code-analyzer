@@ -1,11 +1,11 @@
 
 console.time('Total');
 import { globby } from 'globby';
-import { outputFile } from 'fs-extra/esm';
+// import { outputFile } from 'fs-extra/esm';
 
 import { readFile } from 'fs/promises';
 import { normalize } from 'path';
-import { ExtAnalyzer } from './ExtMeta.mjs';
+import { ExtAnalyzer } from './src/Analyzer.js'
 
 const modules = await globby('node_modules/ru.coon/src/**/*.+(js|scss)');
 const cwd = process.cwd();

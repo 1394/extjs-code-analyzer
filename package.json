@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "run": "node ./index.mjs"
+    "run": "node ."
   },
   "keywords": [],
   "author": "",

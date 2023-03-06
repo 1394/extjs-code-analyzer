@@ -1,82 +1,26 @@
 import { parse } from 'acorn';
 import { simple } from 'acorn-walk';
+import { ExtClassMeta } from './ClassMeta.js';
+import { ExtFileMeta } from './FileMeta.js';
 
-class ExtClassProps {
-    name = '';
-    alias = '';
-    extend;
-    override;
-    alternateNames = [];
-    requires = [];
-    uses = [];
-    mixins = [];
-    imports = [];
-    importPath;
-}
-
-class ExtClassMeta extends ExtClassProps {
-    callParentNodes = [];
-
-    constructor() {
-        super();
-        Object.assign(this, ...arguments);
-    }
-
-    getImportString() {
-        return this.imports.reduce((str, path) => `${str}import '${path}.js';\n`, '');
-    }
-}
-
-class ExtFileMeta {
-    #importPath;
-
-    definedClasses = [];
-    callParentNodes = [];
-    existingImports = [];
-
-    constructor(importPath) {
-        this.#importPath = importPath;
-    }
-
-    getImportPath() {
-        return this.#importPath;
-    }
-
-    addCallParentNodes(items) {
-        if (!items || !items.length) return;
-        this.callParentNodes = this.callParentNodes.concat(Array.isArray(items) ? items : [items]);
-    }
-
-    addDefinedClass(item) {
-        if (!item) return;
-        this.definedClasses.push(item);
-    }
-
-    addExistingImport(item) {
-        if (!item) return;
-        this.existingImports.push(item);
-    }
-}
-
-// TODO add constructor this.code
 export class ExtAnalyzer {
-
+    static code = '';
     static classMap = {};
     static fileMap = {};
 
-    static replaceCode(code, node, replacement = '') {
-        let transformedCode = code.slice(0, node.start);
+    static replaceCode(node, replacement = '') {
+        let transformedCode = this.code.slice(0, node.start);
         transformedCode += replacement;
-        transformedCode += code.slice(node.end);
+        transformedCode += this.code.slice(node.end);
         return transformedCode;
     }
 
-    static getSource(code, node) {
-        return code.slice(node.start, node.end);
+    static getSource(node) {
+        return this.code.slice(node.start, node.end);
     }
 
-    static argsToStr(code, args = []) {
-        return args.reduce((_, cur) => this.getSource(code, cur), '');
+    static argsToStr(args = []) {
+        return args.reduce((_, cur) => this.getSource(cur), '');
     }
 
     static propToArray({ type, elements, value }) {
@@ -100,7 +44,7 @@ export class ExtAnalyzer {
         return `${fn}.apply(${argStr})`;
     }
 
-    static findCallParent(code, node, className, isOverride) {
+    static findCallParent(node, className, isOverride) {
         const matches = [];
         simple(node, {
             Property: (prop) => {
@@ -114,8 +58,8 @@ export class ExtAnalyzer {
                                         const replacement = this.replaceCallParentDirect(
                                             className,
                                             fnName,
-                                            this.getSource(code, node.callee.object),
-                                            this.argsToStr(code, node.arguments),
+                                            this.getSource(node.callee.object),
+                                            this.argsToStr(node.arguments),
                                             isOverride
                                         );
                                         matches.push({ node: { start: node.start, end: node.end }, replacement });
@@ -131,7 +75,8 @@ export class ExtAnalyzer {
     }
 
     static analyze(code = '', importPath) {
-        const ast = parse(code, { ecmaVersion: 2020 });
+        this.code = code;
+        const ast = parse(this.code, { ecmaVersion: 2020 });
         const fileMeta = new ExtFileMeta(importPath);
         this.fileMap[importPath] = fileMeta;
         simple(ast, {
@@ -158,7 +103,7 @@ export class ExtAnalyzer {
                             // extend, override
                             if (['extend', 'override'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
-                                fileMeta.addCallParentNodes(this.findCallParent(code, node, prop.value.value, prop.key.name === 'override'));
+                                fileMeta.addCallParentNodes(this.findCallParent(node, prop.value.value, prop.key.name === 'override'));
                             }
                             // uses, requires, mixins
                             if (['uses', 'requires', 'mixins'].includes(prop.key.name)) {
