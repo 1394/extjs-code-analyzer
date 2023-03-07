@@ -1,18 +1,17 @@
-import { parse } from 'acorn';
-import { simple } from 'acorn-walk';
-import { ExtClassMeta } from './ClassMeta.js';
-import { ExtFileMeta } from './FileMeta.js';
+import {parse} from 'acorn';
+import {simple} from 'acorn-walk';
+import {ExtClassMeta} from './ClassMeta.js';
+import {ExtFileMeta} from './FileMeta.js';
 
 export class ExtAnalyzer {
-    static code = '';
+    static #code = '';
     static classMap = {};
+    static xTypeMap = {};
+    static aliasMap = {};
     static fileMap = {};
 
-    static replaceCode(node, replacement = '') {
-        let transformedCode = this.code.slice(0, node.start);
-        transformedCode += replacement;
-        transformedCode += this.code.slice(node.end);
-        return transformedCode;
+    static get code() {
+        return this.#code;
     }
 
     static getSource(node) {
@@ -23,7 +22,7 @@ export class ExtAnalyzer {
         return args.reduce((_, cur) => this.getSource(cur), '');
     }
 
-    static propToArray({ type, elements, value }) {
+    static propToArray({type, elements, value}) {
         const result = [];
         if (type === 'ArrayExpression') {
             elements.forEach(el => {
@@ -62,7 +61,7 @@ export class ExtAnalyzer {
                                             this.argsToStr(node.arguments),
                                             isOverride
                                         );
-                                        matches.push({ node: { start: node.start, end: node.end }, replacement });
+                                        matches.push({node: {start: node.start, end: node.end}, replacement});
                                     }
                                 }
                             });
@@ -75,9 +74,10 @@ export class ExtAnalyzer {
     }
 
     static analyze(code = '', importPath) {
-        this.code = code;
-        const ast = parse(this.code, { ecmaVersion: 2020 });
+        this.#code = code;
+        const ast = parse(this.code, {ecmaVersion: 2020});
         const fileMeta = new ExtFileMeta(importPath);
+        fileMeta.setAST(ast);
         this.fileMap[importPath] = fileMeta;
         simple(ast, {
             ImportDeclaration(node) {
@@ -88,13 +88,13 @@ export class ExtAnalyzer {
                     // Ext.define
                     if (node.expression.callee.property.name === 'define') {
                         const name = node.expression.arguments[0].value;
-                        const classMeta = new ExtClassMeta({ name, importPath });
+                        const classMeta = new ExtClassMeta({name, importPath});
                         this.classMap[name] = classMeta;
                         const props = node.expression.arguments[1].properties;
                         props?.forEach(prop => {
                             // alias
-                            if (prop.key.name === 'alias') {
-                                classMeta.alias = prop.value.value;
+                            if (['alias', 'xtype'].includes(prop.key.name)) {
+                                classMeta[prop.key.name] = prop.value.value;
                             }
                             // alternateClassName
                             if (prop.key.name === 'alternateClassName') {
@@ -112,9 +112,21 @@ export class ExtAnalyzer {
                             }
                         });
                         fileMeta.addDefinedClass(classMeta);
+                        if (classMeta.alternateNames.length) {
+                            classMeta.alternateNames.forEach(name => {
+                                this.classMap[name] = classMeta;
+                            });
+                        }
+                        if (classMeta.xtype) {
+                            this.xTypeMap[classMeta.xtype] = classMeta;
+                        }
+                        if (classMeta.alias) {
+                            this.aliasMap[classMeta.alias] = classMeta;
+                        }
                     }
                 }
             }
         });
+        return ast;
     }
 }

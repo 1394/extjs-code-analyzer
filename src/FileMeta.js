@@ -1,6 +1,6 @@
 export class ExtFileMeta {
     #importPath;
-
+    #ast;
     definedClasses = [];
     callParentNodes = [];
     existingImports = [];
@@ -26,5 +26,13 @@ export class ExtFileMeta {
     addExistingImport(item) {
         if (!item) return;
         this.existingImports.push(item);
+    }
+
+    setAST(ast) {
+        this.#ast = ast;
+    }
+
+    getAST() {
+        return this.#ast;
     }
 }

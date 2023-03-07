@@ -1,6 +1,7 @@
 export class ExtClassProps {
     name = '';
-    alias = '';
+    alias;
+    xtype;
     extend;
     override;
     alternateNames = [];
@@ -8,5 +9,4 @@ export class ExtClassProps {
     uses = [];
     mixins = [];
     imports = [];
-    importPath;
 }
