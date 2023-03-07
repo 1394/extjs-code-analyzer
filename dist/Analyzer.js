@@ -5395,11 +5395,14 @@ var ExtFileMeta = class {
   }
 };
 
-// src/Analyzer.js
+// src/CodeUtils.js
 var _code;
-var ExtAnalyzer = class {
+var CodeUtils = class {
   static get code() {
     return __privateGet(this, _code);
+  }
+  static set code(code) {
+    __privateSet(this, _code, code);
   }
   static getSource(node) {
     return this.code.slice(node.start, node.end);
@@ -5418,7 +5421,9 @@ var ExtAnalyzer = class {
     }
     return result;
   }
-  static replaceCallParentDirect(className, fnName, scope, args, isOverride) {
+  static getCallParentReplacement(className, fnName, node, isOverride) {
+    const scope = this.getSource(node.callee.object);
+    const args = this.argsToStr(node.arguments);
     const argStr = args.length ? `${scope}, ${args}` : scope;
     let fn = `(${className}.prototype || ${className})['${fnName}']`;
     if (isOverride) {
@@ -5426,7 +5431,7 @@ var ExtAnalyzer = class {
     }
     return `${fn}.apply(${argStr})`;
   }
-  static findCallParent(node, className, isOverride) {
+  static findCallParent(node, className, type) {
     const matches = [];
     simple(node, {
       Property: (prop) => {
@@ -5437,12 +5442,11 @@ var ExtAnalyzer = class {
               simple(fnBody, {
                 CallExpression: (node2) => {
                   if (node2.callee?.property?.name === "callParent") {
-                    const replacement = this.replaceCallParentDirect(
+                    const replacement = this.getCallParentReplacement(
                       className,
                       fnName,
-                      this.getSource(node2.callee.object),
-                      this.argsToStr(node2.arguments),
-                      isOverride
+                      node2,
+                      type === "override"
                     );
                     matches.push({ node: { start: node2.start, end: node2.end }, replacement });
                   }
@@ -5455,50 +5459,74 @@ var ExtAnalyzer = class {
     });
     return matches;
   }
+};
+_code = new WeakMap();
+__privateAdd(CodeUtils, _code, "");
+
+// src/ClassManager.js
+var ClassManager = class {
+  static resolveImports(classMeta) {
+    const imports = [
+      classMeta.extend,
+      classMeta.override,
+      ...classMeta.requires,
+      ...classMeta.uses,
+      ...classMeta.mixins
+    ].filter(Boolean);
+    console.log(imports, classMeta.name);
+  }
+};
+__publicField(ClassManager, "classMap", {});
+__publicField(ClassManager, "xTypeMap", {});
+__publicField(ClassManager, "aliasMap", {});
+
+// src/Analyzer.js
+var ExtAnalyzer = class {
   static analyze(code = "", importPath) {
-    __privateSet(this, _code, code);
-    const ast = parse3(this.code, { ecmaVersion: 2020 });
+    const ast = parse3(code, { ecmaVersion: 2020 });
     const fileMeta = new ExtFileMeta(importPath);
     fileMeta.setAST(ast);
     this.fileMap[importPath] = fileMeta;
+    CodeUtils.code = code;
     simple(ast, {
       ImportDeclaration(node) {
-        fileMeta.addExistingImport(realpath(node.source.value));
+        fileMeta.addExistingImport(node.source.value);
       },
       ExpressionStatement: (node) => {
         if (node.expression.callee?.object?.name === "Ext") {
           if (node.expression.callee.property.name === "define") {
             const name = node.expression.arguments[0].value;
             const classMeta = new ExtClassMeta({ name, importPath });
-            this.classMap[name] = classMeta;
+            ClassManager.classMap[name] = classMeta;
             const props = node.expression.arguments[1].properties;
             props?.forEach((prop) => {
               if (["alias", "xtype"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = prop.value.value;
               }
               if (prop.key.name === "alternateClassName") {
-                classMeta.alternateNames = this.propToArray(prop.value);
+                classMeta.alternateNames = CodeUtils.propToArray(prop.value);
               }
               if (["extend", "override"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = prop.value.value;
-                fileMeta.addCallParentNodes(this.findCallParent(node, prop.value.value, prop.key.name === "override"));
+                fileMeta.addCallParentNodes(CodeUtils.findCallParent(node, prop.value.value, prop.key.name));
               }
               if (["uses", "requires", "mixins"].includes(prop.key.name)) {
-                classMeta[prop.key.name] = this.propToArray(prop.value);
+                classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
               }
             });
             fileMeta.addDefinedClass(classMeta);
             if (classMeta.alternateNames.length) {
               classMeta.alternateNames.forEach((name2) => {
-                this.classMap[name2] = classMeta;
+                ClassManager.classMap[name2] = classMeta;
               });
             }
             if (classMeta.xtype) {
-              this.xTypeMap[classMeta.xtype] = classMeta;
+              ClassManager.xTypeMap[classMeta.xtype] = classMeta;
             }
             if (classMeta.alias) {
-              this.aliasMap[classMeta.alias] = classMeta;
+              ClassManager.aliasMap[classMeta.alias] = classMeta;
             }
+            ClassManager.resolveImports(classMeta);
           }
         }
       }
@@ -5506,12 +5534,8 @@ var ExtAnalyzer = class {
     return ast;
   }
 };
-_code = new WeakMap();
-__privateAdd(ExtAnalyzer, _code, "");
-__publicField(ExtAnalyzer, "classMap", {});
-__publicField(ExtAnalyzer, "xTypeMap", {});
-__publicField(ExtAnalyzer, "aliasMap", {});
 __publicField(ExtAnalyzer, "fileMap", {});
+__publicField(ExtAnalyzer, "classes", ClassManager);
 export {
   ExtAnalyzer
 };
