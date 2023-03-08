@@ -2,8 +2,12 @@ export class ExtFileMeta {
     #importPath;
     #ast;
     definedClasses = [];
-    codeTransform = [];
+    #codeTransform = [];
     existingImports = [];
+
+    get codeTransform() {
+        return this.#codeTransform;
+    }
 
     constructor(importPath) {
         this.#importPath = importPath;
@@ -15,7 +19,9 @@ export class ExtFileMeta {
 
     addCodeTransform(items) {
         if (!items || !items.length) return;
-        this.codeTransform = this.codeTransform.concat(Array.isArray(items) ? items : [items]);
+        this.#codeTransform = this.#codeTransform.concat(
+            Array.isArray(items) ? items : [items]
+        );
     }
 
     addDefinedClass(item) {
@@ -34,5 +40,19 @@ export class ExtFileMeta {
 
     getAST() {
         return this.#ast;
+    }
+
+    getResolvedImports() {
+        const imports = {};
+        this.definedClasses.forEach(({ resolvedImports }) => {
+            Object.assign(imports, resolvedImports);
+        });
+        return imports;
+    }
+
+    getResolvedImportPaths() {
+        return Object.values(this.getResolvedImports()).map(
+            ({ realPath }) => realPath
+        );
     }
 }

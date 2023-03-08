@@ -1,4 +1,4 @@
-import {simple} from "acorn-walk";
+import { simple } from 'acorn-walk';
 
 export class CodeUtils {
     static #code = '';
@@ -18,10 +18,10 @@ export class CodeUtils {
         return args.reduce((_, cur) => this.getSource(cur), '');
     }
 
-    static propToArray({type, elements, value}) {
+    static propToArray({ type, elements, value }) {
         const result = [];
         if (type === 'ArrayExpression') {
-            elements.forEach(el => {
+            elements.forEach((el) => {
                 result.push(el.value);
             });
         } else if (type === 'Literal') {
@@ -51,21 +51,31 @@ export class CodeUtils {
                         FunctionExpression: (fnBody) => {
                             simple(fnBody, {
                                 CallExpression: (node) => {
-                                    if (node.callee?.property?.name === 'callParent') {
-                                        const replacement = this.getCallParentReplacement(
-                                            className,
-                                            fnName,
-                                            node,
-                                            type === 'override'
-                                        );
-                                        matches.push({node: {start: node.start, end: node.end}, replacement});
+                                    if (
+                                        node.callee?.property?.name ===
+                                        'callParent'
+                                    ) {
+                                        const replacement =
+                                            this.getCallParentReplacement(
+                                                className,
+                                                fnName,
+                                                node,
+                                                type === 'override'
+                                            );
+                                        matches.push({
+                                            node: {
+                                                start: node.start,
+                                                end: node.end,
+                                            },
+                                            replacement,
+                                        });
                                     }
-                                }
+                                },
                             });
-                        }
+                        },
                     });
                 }
-            }
+            },
         });
         return matches;
     }

@@ -1,16 +1,16 @@
-import {parse} from 'acorn';
-import {simple} from 'acorn-walk';
-import {ExtClassMeta} from './ClassMeta.js';
-import {ExtFileMeta} from './FileMeta.js';
-import {CodeUtils} from "./CodeUtils.js";
-import {ClassManager} from "./ClassManager.js";
+import { parse } from 'acorn';
+import { simple } from 'acorn-walk';
+import { ExtClassMeta } from './ClassMeta.js';
+import { ExtFileMeta } from './FileMeta.js';
+import { CodeUtils } from './CodeUtils.js';
+import { ClassManager } from './ClassManager.js';
 
 export class ExtAnalyzer {
     static fileMap = {};
-    static classes = ClassManager;
+    static classManager = ClassManager;
 
     static analyze(code = '', realPath) {
-        const ast = parse(code, {ecmaVersion: 2020});
+        const ast = parse(code, { ecmaVersion: 2020 });
         const fileMeta = new ExtFileMeta(realPath);
         fileMeta.setAST(ast);
         this.fileMap[realPath] = fileMeta;
@@ -24,33 +24,50 @@ export class ExtAnalyzer {
                     // Ext.define
                     if (node.expression.callee.property.name === 'define') {
                         const name = node.expression.arguments[0].value;
-                        const classMeta = new ExtClassMeta({name, realPath: realPath});
+                        const classMeta = new ExtClassMeta({
+                            name,
+                            realPath: realPath,
+                        });
                         ClassManager.classMap[name] = classMeta;
                         const props = node.expression.arguments[1].properties;
-                        props?.forEach(prop => {
+                        props?.forEach((prop) => {
                             // alias
                             if (['alias', 'xtype'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
                             }
                             // alternateClassName
                             if (prop.key.name === 'alternateClassName') {
-                                classMeta.alternateNames = CodeUtils.propToArray(prop.value);
+                                classMeta.alternateNames =
+                                    CodeUtils.propToArray(prop.value);
                             }
                             // extend, override
-                            if (['extend', 'override'].includes(prop.key.name)) {
+                            if (
+                                ['extend', 'override'].includes(prop.key.name)
+                            ) {
                                 classMeta[prop.key.name] = prop.value.value;
-                                fileMeta.addCodeTransform(CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name));
+                                fileMeta.addCodeTransform(
+                                    CodeUtils.prepareTransforms(
+                                        node,
+                                        prop.value.value,
+                                        prop.key.name
+                                    )
+                                );
                             }
                             // uses, requires, mixins
-                            if (['uses', 'requires', 'mixins'].includes(prop.key.name)) {
+                            if (
+                                ['uses', 'requires', 'mixins'].includes(
+                                    prop.key.name
+                                )
+                            ) {
                                 // TODO mixins can be object
-                                classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
+                                classMeta[prop.key.name] =
+                                    CodeUtils.propToArray(prop.value);
                             }
                             // TODO resolve controller && viewModel
                         });
                         fileMeta.addDefinedClass(classMeta);
                         if (classMeta.alternateNames.length) {
-                            classMeta.alternateNames.forEach(name => {
+                            classMeta.alternateNames.forEach((name) => {
                                 ClassManager.classMap[name] = classMeta;
                             });
                         }
@@ -62,7 +79,7 @@ export class ExtAnalyzer {
                         }
                     }
                 }
-            }
+            },
         });
         return fileMeta;
     }

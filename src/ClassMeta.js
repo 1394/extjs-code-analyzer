@@ -1,4 +1,4 @@
-import {ExtClassProps} from "./ClassProps.js";
+import { ExtClassProps } from './ClassProps.js';
 
 export class ExtClassMeta extends ExtClassProps {
     resolvedImports = {};
@@ -9,8 +9,8 @@ export class ExtClassMeta extends ExtClassProps {
             this.override,
             ...this.requires,
             ...this.uses,
-            ...this.mixins
-        ].filter(Boolean)
+            ...this.mixins,
+        ].filter(Boolean);
     }
 
     constructor() {
@@ -19,6 +19,9 @@ export class ExtClassMeta extends ExtClassProps {
     }
 
     getImportString() {
-        return this.imports.reduce((str, path) => `${str}import '${path}.js';\n`, '');
+        return this.imports.reduce(
+            (str, path) => `${str}import '${path}.js';\n`,
+            ''
+        );
     }
 }

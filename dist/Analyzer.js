@@ -5362,8 +5362,11 @@ var ExtClassMeta = class extends ExtClassProps {
     Object.assign(this, ...arguments);
   }
   getImportString() {
-    return this.imports.reduce((str, path) => `${str}import '${path}.js';
-`, "");
+    return this.imports.reduce(
+      (str, path) => `${str}import '${path}.js';
+`,
+      ""
+    );
   }
 };
 
@@ -5372,8 +5375,11 @@ var ExtFileMeta = class {
   #importPath;
   #ast;
   definedClasses = [];
-  codeTransform = [];
+  #codeTransform = [];
   existingImports = [];
+  get codeTransform() {
+    return this.#codeTransform;
+  }
   constructor(importPath) {
     this.#importPath = importPath;
   }
@@ -5383,7 +5389,9 @@ var ExtFileMeta = class {
   addCodeTransform(items) {
     if (!items || !items.length)
       return;
-    this.codeTransform = this.codeTransform.concat(Array.isArray(items) ? items : [items]);
+    this.#codeTransform = this.#codeTransform.concat(
+      Array.isArray(items) ? items : [items]
+    );
   }
   addDefinedClass(item) {
     if (!item)
@@ -5400,6 +5408,18 @@ var ExtFileMeta = class {
   }
   getAST() {
     return this.#ast;
+  }
+  getResolvedImports() {
+    const imports = {};
+    this.definedClasses.forEach(({ resolvedImports }) => {
+      Object.assign(imports, resolvedImports);
+    });
+    return imports;
+  }
+  getResolvedImportPaths() {
+    return Object.values(this.getResolvedImports()).map(
+      ({ realPath }) => realPath
+    );
   }
 };
 
@@ -5456,7 +5476,13 @@ var CodeUtils = class {
                       node2,
                       type === "override"
                     );
-                    matches.push({ node: { start: node2.start, end: node2.end }, replacement });
+                    matches.push({
+                      node: {
+                        start: node2.start,
+                        end: node2.end
+                      },
+                      replacement
+                    });
                   }
                 }
               });
@@ -5511,7 +5537,10 @@ var ExtAnalyzer = class {
         if (node.expression.callee?.object?.name === "Ext") {
           if (node.expression.callee.property.name === "define") {
             const name = node.expression.arguments[0].value;
-            const classMeta = new ExtClassMeta({ name, realPath });
+            const classMeta = new ExtClassMeta({
+              name,
+              realPath
+            });
             ClassManager.classMap[name] = classMeta;
             const props = node.expression.arguments[1].properties;
             props?.forEach((prop) => {
@@ -5523,9 +5552,17 @@ var ExtAnalyzer = class {
               }
               if (["extend", "override"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = prop.value.value;
-                fileMeta.addCodeTransform(CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name));
+                fileMeta.addCodeTransform(
+                  CodeUtils.prepareTransforms(
+                    node,
+                    prop.value.value,
+                    prop.key.name
+                  )
+                );
               }
-              if (["uses", "requires", "mixins"].includes(prop.key.name)) {
+              if (["uses", "requires", "mixins"].includes(
+                prop.key.name
+              )) {
                 classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
               }
             });
@@ -5552,7 +5589,7 @@ var ExtAnalyzer = class {
   }
 };
 __publicField(ExtAnalyzer, "fileMap", {});
-__publicField(ExtAnalyzer, "classes", ClassManager);
+__publicField(ExtAnalyzer, "classManager", ClassManager);
 export {
   ExtAnalyzer
 };
