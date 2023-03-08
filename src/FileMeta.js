@@ -2,7 +2,7 @@ export class ExtFileMeta {
     #importPath;
     #ast;
     definedClasses = [];
-    callParentNodes = [];
+    codeTransform = [];
     existingImports = [];
 
     constructor(importPath) {
@@ -13,9 +13,9 @@ export class ExtFileMeta {
         return this.#importPath;
     }
 
-    addCallParentNodes(items) {
+    addCodeTransform(items) {
         if (!items || !items.length) return;
-        this.callParentNodes = this.callParentNodes.concat(Array.isArray(items) ? items : [items]);
+        this.codeTransform = this.codeTransform.concat(Array.isArray(items) ? items : [items]);
     }
 
     addDefinedClass(item) {

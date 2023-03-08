@@ -8,5 +8,4 @@ export class ExtClassProps {
     requires = [];
     uses = [];
     mixins = [];
-    imports = [];
 }

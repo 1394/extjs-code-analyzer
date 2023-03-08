@@ -41,7 +41,7 @@ export class CodeUtils {
         return `${fn}.apply(${argStr})`;
     }
 
-    static findCallParent(node, className, type) {
+    static prepareTransforms(node, className, type) {
         const matches = [];
         simple(node, {
             Property: (prop) => {
@@ -68,5 +68,12 @@ export class CodeUtils {
             }
         });
         return matches;
+    }
+
+    static replaceCode(code, node, replacement = '') {
+        let transformedCode = code.slice(0, node.start);
+        transformedCode += replacement;
+        transformedCode += code.slice(node.end);
+        return transformedCode;
     }
 }

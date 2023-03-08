@@ -3,14 +3,15 @@ export class ClassManager {
     static xTypeMap = {};
     static aliasMap = {};
 
-    static resolveImports(classMeta) {
-        const imports = [
-            classMeta.extend,
-            classMeta.override,
-            ...classMeta.requires,
-            ...classMeta.uses,
-            ...classMeta.mixins
-        ].filter(Boolean);
-        console.log(imports, classMeta.name);
+    static resolveImports(name) {
+        const classes = name ? {[name]: this.classMap[name]} : this.classMap;
+        for (const className in classes) {
+            const classMeta = classes[className];
+            if (classMeta.imports.length) {
+                classMeta.imports.forEach(importName => {
+                    classMeta.resolvedImports[importName] = this.classMap[importName];
+                });
+            }
+        }
     }
 }

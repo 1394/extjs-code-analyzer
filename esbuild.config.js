@@ -18,4 +18,5 @@ if (isWatchMode) {
 } else {
     await build(options);
 }
-
+console.clear();
+console.log('[esbuild] ' + (isWatchMode ? 'Watching...' : 'Build complete.'));

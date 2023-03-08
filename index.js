@@ -19,9 +19,9 @@ all:
         for (const key in ExtAnalyzer.fileMap) {
             if (Object.hasOwnProperty.call(ExtAnalyzer.fileMap, key)) {
                 const fileMeta = ExtAnalyzer.fileMap[key];
-                if (fileMeta.callParentNodes.length) {
+                if (fileMeta.codeTransform.length) {
                     console.log(fileMeta.getImportPath());
-                    fileMeta.callParentNodes.forEach(node => {
+                    fileMeta.codeTransform.forEach(node => {
                         console.log(node);
                     });
                     break all;

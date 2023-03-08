@@ -9,11 +9,11 @@ export class ExtAnalyzer {
     static fileMap = {};
     static classes = ClassManager;
 
-    static analyze(code = '', importPath) {
+    static analyze(code = '', realPath) {
         const ast = parse(code, {ecmaVersion: 2020});
-        const fileMeta = new ExtFileMeta(importPath);
+        const fileMeta = new ExtFileMeta(realPath);
         fileMeta.setAST(ast);
-        this.fileMap[importPath] = fileMeta;
+        this.fileMap[realPath] = fileMeta;
         CodeUtils.code = code;
         simple(ast, {
             ImportDeclaration(node) {
@@ -24,7 +24,7 @@ export class ExtAnalyzer {
                     // Ext.define
                     if (node.expression.callee.property.name === 'define') {
                         const name = node.expression.arguments[0].value;
-                        const classMeta = new ExtClassMeta({name, importPath});
+                        const classMeta = new ExtClassMeta({name, realPath: realPath});
                         ClassManager.classMap[name] = classMeta;
                         const props = node.expression.arguments[1].properties;
                         props?.forEach(prop => {
@@ -39,13 +39,14 @@ export class ExtAnalyzer {
                             // extend, override
                             if (['extend', 'override'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
-                                fileMeta.addCallParentNodes(CodeUtils.findCallParent(node, prop.value.value, prop.key.name));
+                                fileMeta.addCodeTransform(CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name));
                             }
                             // uses, requires, mixins
                             if (['uses', 'requires', 'mixins'].includes(prop.key.name)) {
                                 // TODO mixins can be object
                                 classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
                             }
+                            // TODO resolve controller && viewModel
                         });
                         fileMeta.addDefinedClass(classMeta);
                         if (classMeta.alternateNames.length) {
@@ -59,11 +60,14 @@ export class ExtAnalyzer {
                         if (classMeta.alias) {
                             ClassManager.aliasMap[classMeta.alias] = classMeta;
                         }
-                        ClassManager.resolveImports(classMeta);
                     }
                 }
             }
         });
-        return ast;
+        return fileMeta;
+    }
+
+    static getFile(realPath) {
+        return this.fileMap[realPath];
     }
 }

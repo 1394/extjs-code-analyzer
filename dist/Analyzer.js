@@ -5343,12 +5343,20 @@ var ExtClassProps = class {
   requires = [];
   uses = [];
   mixins = [];
-  imports = [];
 };
 
 // src/ClassMeta.js
 var ExtClassMeta = class extends ExtClassProps {
-  callParentNodes = [];
+  resolvedImports = {};
+  get imports() {
+    return [
+      this.extend,
+      this.override,
+      ...this.requires,
+      ...this.uses,
+      ...this.mixins
+    ].filter(Boolean);
+  }
   constructor() {
     super();
     Object.assign(this, ...arguments);
@@ -5364,7 +5372,7 @@ var ExtFileMeta = class {
   #importPath;
   #ast;
   definedClasses = [];
-  callParentNodes = [];
+  codeTransform = [];
   existingImports = [];
   constructor(importPath) {
     this.#importPath = importPath;
@@ -5372,10 +5380,10 @@ var ExtFileMeta = class {
   getImportPath() {
     return this.#importPath;
   }
-  addCallParentNodes(items) {
+  addCodeTransform(items) {
     if (!items || !items.length)
       return;
-    this.callParentNodes = this.callParentNodes.concat(Array.isArray(items) ? items : [items]);
+    this.codeTransform = this.codeTransform.concat(Array.isArray(items) ? items : [items]);
   }
   addDefinedClass(item) {
     if (!item)
@@ -5431,7 +5439,7 @@ var CodeUtils = class {
     }
     return `${fn}.apply(${argStr})`;
   }
-  static findCallParent(node, className, type) {
+  static prepareTransforms(node, className, type) {
     const matches = [];
     simple(node, {
       Property: (prop) => {
@@ -5459,21 +5467,28 @@ var CodeUtils = class {
     });
     return matches;
   }
+  static replaceCode(code, node, replacement = "") {
+    let transformedCode = code.slice(0, node.start);
+    transformedCode += replacement;
+    transformedCode += code.slice(node.end);
+    return transformedCode;
+  }
 };
 _code = new WeakMap();
 __privateAdd(CodeUtils, _code, "");
 
 // src/ClassManager.js
 var ClassManager = class {
-  static resolveImports(classMeta) {
-    const imports = [
-      classMeta.extend,
-      classMeta.override,
-      ...classMeta.requires,
-      ...classMeta.uses,
-      ...classMeta.mixins
-    ].filter(Boolean);
-    console.log(imports, classMeta.name);
+  static resolveImports(name) {
+    const classes = name ? { [name]: this.classMap[name] } : this.classMap;
+    for (const className in classes) {
+      const classMeta = classes[className];
+      if (classMeta.imports.length) {
+        classMeta.imports.forEach((importName) => {
+          classMeta.resolvedImports[importName] = this.classMap[importName];
+        });
+      }
+    }
   }
 };
 __publicField(ClassManager, "classMap", {});
@@ -5482,11 +5497,11 @@ __publicField(ClassManager, "aliasMap", {});
 
 // src/Analyzer.js
 var ExtAnalyzer = class {
-  static analyze(code = "", importPath) {
+  static analyze(code = "", realPath) {
     const ast = parse3(code, { ecmaVersion: 2020 });
-    const fileMeta = new ExtFileMeta(importPath);
+    const fileMeta = new ExtFileMeta(realPath);
     fileMeta.setAST(ast);
-    this.fileMap[importPath] = fileMeta;
+    this.fileMap[realPath] = fileMeta;
     CodeUtils.code = code;
     simple(ast, {
       ImportDeclaration(node) {
@@ -5496,7 +5511,7 @@ var ExtAnalyzer = class {
         if (node.expression.callee?.object?.name === "Ext") {
           if (node.expression.callee.property.name === "define") {
             const name = node.expression.arguments[0].value;
-            const classMeta = new ExtClassMeta({ name, importPath });
+            const classMeta = new ExtClassMeta({ name, realPath });
             ClassManager.classMap[name] = classMeta;
             const props = node.expression.arguments[1].properties;
             props?.forEach((prop) => {
@@ -5508,7 +5523,7 @@ var ExtAnalyzer = class {
               }
               if (["extend", "override"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = prop.value.value;
-                fileMeta.addCallParentNodes(CodeUtils.findCallParent(node, prop.value.value, prop.key.name));
+                fileMeta.addCodeTransform(CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name));
               }
               if (["uses", "requires", "mixins"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
@@ -5526,12 +5541,14 @@ var ExtAnalyzer = class {
             if (classMeta.alias) {
               ClassManager.aliasMap[classMeta.alias] = classMeta;
             }
-            ClassManager.resolveImports(classMeta);
           }
         }
       }
     });
-    return ast;
+    return fileMeta;
+  }
+  static getFile(realPath) {
+    return this.fileMap[realPath];
   }
 };
 __publicField(ExtAnalyzer, "fileMap", {});
