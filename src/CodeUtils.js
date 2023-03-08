@@ -60,7 +60,7 @@ export class CodeUtils {
                                                 className,
                                                 fnName,
                                                 node,
-                                                type === 'override'
+                                                type === 'override',
                                             );
                                         matches.push({
                                             node: {

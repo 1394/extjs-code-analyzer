@@ -20,7 +20,7 @@ export class ExtFileMeta {
     addCodeTransform(items) {
         if (!items || !items.length) return;
         this.#codeTransform = this.#codeTransform.concat(
-            Array.isArray(items) ? items : [items]
+            Array.isArray(items) ? items : [items],
         );
     }
 
@@ -51,8 +51,9 @@ export class ExtFileMeta {
     }
 
     getResolvedImportPaths() {
-        return Object.values(this.getResolvedImports()).map(
-            ({ realPath }) => realPath
+        const imports = Object.values(this.getResolvedImports()).filter(
+            Boolean,
         );
+        return imports.length ? imports.map(({ realPath }) => realPath) : [];
     }
 }

@@ -17,11 +17,4 @@ export class ExtClassMeta extends ExtClassProps {
         super();
         Object.assign(this, ...arguments);
     }
-
-    getImportString() {
-        return this.imports.reduce(
-            (str, path) => `${str}import '${path}.js';\n`,
-            ''
-        );
-    }
 }

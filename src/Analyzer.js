@@ -10,6 +10,7 @@ export class ExtAnalyzer {
     static classManager = ClassManager;
 
     static analyze(code = '', realPath) {
+        // TODO get options from vite
         const ast = parse(code, { ecmaVersion: 2020 });
         const fileMeta = new ExtFileMeta(realPath);
         fileMeta.setAST(ast);
@@ -26,7 +27,7 @@ export class ExtAnalyzer {
                         const name = node.expression.arguments[0].value;
                         const classMeta = new ExtClassMeta({
                             name,
-                            realPath: realPath,
+                            realPath,
                         });
                         ClassManager.classMap[name] = classMeta;
                         const props = node.expression.arguments[1].properties;

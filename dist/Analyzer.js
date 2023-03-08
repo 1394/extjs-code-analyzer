@@ -5361,13 +5361,6 @@ var ExtClassMeta = class extends ExtClassProps {
     super();
     Object.assign(this, ...arguments);
   }
-  getImportString() {
-    return this.imports.reduce(
-      (str, path) => `${str}import '${path}.js';
-`,
-      ""
-    );
-  }
 };
 
 // src/FileMeta.js
@@ -5417,9 +5410,10 @@ var ExtFileMeta = class {
     return imports;
   }
   getResolvedImportPaths() {
-    return Object.values(this.getResolvedImports()).map(
-      ({ realPath }) => realPath
+    const imports = Object.values(this.getResolvedImports()).filter(
+      Boolean
     );
+    return imports.length ? imports.map(({ realPath }) => realPath) : [];
   }
 };
 
