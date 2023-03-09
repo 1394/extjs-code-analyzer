@@ -9,7 +9,7 @@ export class ExtAnalyzer {
     static fileMap = {};
     static classManager = ClassManager;
 
-    static analyze(code = '', realPath) {
+    static analyze(code = '', realPath, isResolveImports = false) {
         // TODO get options from vite || pass parse fn
         const ast = parse(code, { ecmaVersion: 2020 });
         const fileMeta = new ExtFileMeta(realPath, code, ast);
@@ -81,6 +81,11 @@ export class ExtAnalyzer {
                 }
             },
         });
+        if (isResolveImports) {
+            fileMeta.definedClasses.forEach(({ name }) => {
+                this.classManager.resolveImports(name);
+            });
+        }
         return fileMeta;
     }
 

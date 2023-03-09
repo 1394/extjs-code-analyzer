@@ -5560,7 +5560,7 @@ __publicField(ClassManager, "vmMap", {});
 
 // src/Analyzer.js
 var ExtAnalyzer = class {
-  static analyze(code = "", realPath) {
+  static analyze(code = "", realPath, isResolveImports = false) {
     const ast = parse3(code, { ecmaVersion: 2020 });
     const fileMeta = new ExtFileMeta(realPath, code, ast);
     this.fileMap[realPath] = fileMeta;
@@ -5618,6 +5618,11 @@ var ExtAnalyzer = class {
         }
       }
     });
+    if (isResolveImports) {
+      fileMeta.definedClasses.forEach(({ name }) => {
+        this.classManager.resolveImports(name);
+      });
+    }
     return fileMeta;
   }
   static getFile(realPath) {
