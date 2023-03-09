@@ -10,10 +10,9 @@ export class ExtAnalyzer {
     static classManager = ClassManager;
 
     static analyze(code = '', realPath) {
-        // TODO get options from vite
+        // TODO get options from vite || pass parse fn
         const ast = parse(code, { ecmaVersion: 2020 });
-        const fileMeta = new ExtFileMeta(realPath);
-        fileMeta.setAST(ast);
+        const fileMeta = new ExtFileMeta(realPath, code, ast);
         this.fileMap[realPath] = fileMeta;
         CodeUtils.code = code;
         simple(ast, {
