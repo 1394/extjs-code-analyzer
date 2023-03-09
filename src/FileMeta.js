@@ -42,9 +42,7 @@ export class ExtFileMeta {
 
     addCodeTransform(items) {
         if (!items || !items.length) return;
-        this.#codeTransform = this.#codeTransform.concat(
-            Array.isArray(items) ? items : [items]
-        );
+        this.#codeTransform = this.#codeTransform.concat(Array.isArray(items) ? items : [items]);
     }
 
     addDefinedClass(item) {
@@ -74,11 +72,7 @@ export class ExtFileMeta {
         let transformedCode = this.code;
         // TODO maybe sort by start?
         this.codeTransform.reverse().forEach(({ node, replacement }) => {
-            transformedCode = CodeUtils.replaceCode(
-                transformedCode,
-                node,
-                replacement
-            );
+            transformedCode = CodeUtils.replaceCode(transformedCode, node, replacement);
         });
         this.isTransformedCode = transformedCode === this.code;
         return transformedCode;

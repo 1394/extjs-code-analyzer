@@ -5483,9 +5483,7 @@ var ExtFileMeta = class {
   addCodeTransform(items) {
     if (!items || !items.length)
       return;
-    this.#codeTransform = this.#codeTransform.concat(
-      Array.isArray(items) ? items : [items]
-    );
+    this.#codeTransform = this.#codeTransform.concat(Array.isArray(items) ? items : [items]);
   }
   addDefinedClass(item) {
     if (!item)
@@ -5511,11 +5509,7 @@ var ExtFileMeta = class {
   getTransformedCode() {
     let transformedCode = this.code;
     this.codeTransform.reverse().forEach(({ node, replacement }) => {
-      transformedCode = CodeUtils.replaceCode(
-        transformedCode,
-        node,
-        replacement
-      );
+      transformedCode = CodeUtils.replaceCode(transformedCode, node, replacement);
     });
     this.isTransformedCode = transformedCode === this.code;
     return transformedCode;
@@ -5535,17 +5529,11 @@ var ClassManager = class {
               if (className2 === classMeta.name)
                 continue;
               if (className2.startsWith(importName.slice(0, -2))) {
-                classMeta.addImportMeta(
-                  className2,
-                  this.classMap[className2]
-                );
+                classMeta.addImportMeta(className2, this.classMap[className2]);
               }
             }
           } else {
-            classMeta.addImportMeta(
-              importName,
-              this.classMap[importName]
-            );
+            classMeta.addImportMeta(importName, this.classMap[importName]);
           }
         });
       }
@@ -5589,16 +5577,10 @@ var ExtAnalyzer = class {
               if (["extend", "override"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = prop.value.value;
                 fileMeta.addCodeTransform(
-                  CodeUtils.prepareTransforms(
-                    node,
-                    prop.value.value,
-                    prop.key.name
-                  )
+                  CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name)
                 );
               }
-              if (["uses", "requires", "mixins"].includes(
-                prop.key.name
-              )) {
+              if (["uses", "requires", "mixins"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
               }
             });

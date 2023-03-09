@@ -37,31 +37,19 @@ export class ExtAnalyzer {
                             }
                             // alternateClassName
                             if (prop.key.name === 'alternateClassName') {
-                                classMeta.alternateNames =
-                                    CodeUtils.propToArray(prop.value);
+                                classMeta.alternateNames = CodeUtils.propToArray(prop.value);
                             }
                             // extend, override
-                            if (
-                                ['extend', 'override'].includes(prop.key.name)
-                            ) {
+                            if (['extend', 'override'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
                                 fileMeta.addCodeTransform(
-                                    CodeUtils.prepareTransforms(
-                                        node,
-                                        prop.value.value,
-                                        prop.key.name
-                                    )
+                                    CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name)
                                 );
                             }
                             // uses, requires, mixins
-                            if (
-                                ['uses', 'requires', 'mixins'].includes(
-                                    prop.key.name
-                                )
-                            ) {
+                            if (['uses', 'requires', 'mixins'].includes(prop.key.name)) {
                                 // TODO mixins can be object
-                                classMeta[prop.key.name] =
-                                    CodeUtils.propToArray(prop.value);
+                                classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
                             }
                             // TODO resolve controller && viewModel
                         });

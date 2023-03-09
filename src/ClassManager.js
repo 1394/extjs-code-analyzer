@@ -15,17 +15,11 @@ export class ClassManager {
                         for (const className in this.classMap) {
                             if (className === classMeta.name) continue;
                             if (className.startsWith(importName.slice(0, -2))) {
-                                classMeta.addImportMeta(
-                                    className,
-                                    this.classMap[className]
-                                );
+                                classMeta.addImportMeta(className, this.classMap[className]);
                             }
                         }
                     } else {
-                        classMeta.addImportMeta(
-                            importName,
-                            this.classMap[importName]
-                        );
+                        classMeta.addImportMeta(importName, this.classMap[importName]);
                     }
                 });
             }

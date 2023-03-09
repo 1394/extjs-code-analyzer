@@ -51,17 +51,13 @@ export class CodeUtils {
                         FunctionExpression: (fnBody) => {
                             simple(fnBody, {
                                 CallExpression: (node) => {
-                                    if (
-                                        node.callee?.property?.name ===
-                                        'callParent'
-                                    ) {
-                                        const replacement =
-                                            this.getCallParentReplacement(
-                                                className,
-                                                fnName,
-                                                node,
-                                                type === 'override'
-                                            );
+                                    if (node.callee?.property?.name === 'callParent') {
+                                        const replacement = this.getCallParentReplacement(
+                                            className,
+                                            fnName,
+                                            node,
+                                            type === 'override'
+                                        );
                                         matches.push({
                                             node: {
                                                 start: node.start,
