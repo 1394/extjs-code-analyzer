@@ -1,7 +1,7 @@
 import { ExtClassProps } from './ClassProps.js';
 
 export class ExtClassMeta extends ExtClassProps {
-    resolvedImports = {};
+    importsMeta = {};
 
     get imports() {
         return [

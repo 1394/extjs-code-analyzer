@@ -5347,7 +5347,7 @@ var ExtClassProps = class {
 
 // src/ClassMeta.js
 var ExtClassMeta = class extends ExtClassProps {
-  resolvedImports = {};
+  importsMeta = {};
   get imports() {
     return [
       this.extend,
@@ -5402,17 +5402,15 @@ var ExtFileMeta = class {
   getAST() {
     return this.#ast;
   }
-  getResolvedImports() {
+  getImportsMeta() {
     const imports = {};
-    this.definedClasses.forEach(({ resolvedImports }) => {
-      Object.assign(imports, resolvedImports);
+    this.definedClasses.forEach(({ importsMeta }) => {
+      Object.assign(imports, importsMeta);
     });
     return imports;
   }
-  getResolvedImportPaths() {
-    const imports = Object.values(this.getResolvedImports()).filter(
-      Boolean
-    );
+  getImportsPaths() {
+    const imports = Object.values(this.getImportsMeta()).filter(Boolean);
     return imports.length ? imports.map(({ realPath }) => realPath) : [];
   }
 };
@@ -5505,7 +5503,7 @@ var ClassManager = class {
       const classMeta = classes[className];
       if (classMeta.imports.length) {
         classMeta.imports.forEach((importName) => {
-          classMeta.resolvedImports[importName] = this.classMap[importName];
+          classMeta.importsMeta[importName] = this.classMap[importName];
         });
       }
     }

@@ -20,7 +20,7 @@ export class ExtFileMeta {
     addCodeTransform(items) {
         if (!items || !items.length) return;
         this.#codeTransform = this.#codeTransform.concat(
-            Array.isArray(items) ? items : [items],
+            Array.isArray(items) ? items : [items]
         );
     }
 
@@ -42,18 +42,16 @@ export class ExtFileMeta {
         return this.#ast;
     }
 
-    getResolvedImports() {
+    getImportsMeta() {
         const imports = {};
-        this.definedClasses.forEach(({ resolvedImports }) => {
-            Object.assign(imports, resolvedImports);
+        this.definedClasses.forEach(({ importsMeta }) => {
+            Object.assign(imports, importsMeta);
         });
         return imports;
     }
 
-    getResolvedImportPaths() {
-        const imports = Object.values(this.getResolvedImports()).filter(
-            Boolean,
-        );
+    getImportsPaths() {
+        const imports = Object.values(this.getImportsMeta()).filter(Boolean);
         return imports.length ? imports.map(({ realPath }) => realPath) : [];
     }
 }

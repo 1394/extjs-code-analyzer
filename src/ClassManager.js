@@ -9,7 +9,8 @@ export class ClassManager {
             const classMeta = classes[className];
             if (classMeta.imports.length) {
                 classMeta.imports.forEach((importName) => {
-                    classMeta.resolvedImports[importName] =
+                    //TODO resolve *
+                    classMeta.importsMeta[importName] =
                         this.classMap[importName];
                 });
             }
