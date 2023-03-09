@@ -5,8 +5,8 @@ export class ExtClassMeta extends ExtClassProps {
 
     get imports() {
         return [
-            this.extend,
-            this.override,
+            this.extend, //TODO test exclude
+            this.override, //TODO test exclude
             ...this.requires,
             ...this.uses,
             ...this.mixins,
@@ -16,5 +16,9 @@ export class ExtClassMeta extends ExtClassProps {
     constructor() {
         super();
         Object.assign(this, ...arguments);
+    }
+
+    addImportMeta(name, classMeta) {
+        this.importsMeta[name] = classMeta;
     }
 }

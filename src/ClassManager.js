@@ -2,6 +2,8 @@ export class ClassManager {
     static classMap = {};
     static xTypeMap = {};
     static aliasMap = {};
+    static controllerMap = {};
+    static vmMap = {};
 
     static resolveImports(name) {
         const classes = name ? { [name]: this.classMap[name] } : this.classMap;
@@ -9,9 +11,22 @@ export class ClassManager {
             const classMeta = classes[className];
             if (classMeta.imports.length) {
                 classMeta.imports.forEach((importName) => {
-                    //TODO resolve *
-                    classMeta.importsMeta[importName] =
-                        this.classMap[importName];
+                    if (importName.endsWith('.*')) {
+                        for (const className in this.classMap) {
+                            if (className === classMeta.name) continue;
+                            if (className.startsWith(importName.slice(0, -2))) {
+                                classMeta.addImportMeta(
+                                    className,
+                                    this.classMap[className]
+                                );
+                            }
+                        }
+                    } else {
+                        classMeta.addImportMeta(
+                            importName,
+                            this.classMap[importName]
+                        );
+                    }
                 });
             }
         }

@@ -5351,7 +5351,9 @@ var ExtClassMeta = class extends ExtClassProps {
   get imports() {
     return [
       this.extend,
+      //TODO test exclude
       this.override,
+      //TODO test exclude
       ...this.requires,
       ...this.uses,
       ...this.mixins
@@ -5360,6 +5362,9 @@ var ExtClassMeta = class extends ExtClassProps {
   constructor() {
     super();
     Object.assign(this, ...arguments);
+  }
+  addImportMeta(name, classMeta) {
+    this.importsMeta[name] = classMeta;
   }
 };
 
@@ -5503,7 +5508,23 @@ var ClassManager = class {
       const classMeta = classes[className];
       if (classMeta.imports.length) {
         classMeta.imports.forEach((importName) => {
-          classMeta.importsMeta[importName] = this.classMap[importName];
+          if (importName.endsWith(".*")) {
+            for (const className2 in this.classMap) {
+              if (className2 === classMeta.name)
+                continue;
+              if (className2.startsWith(importName.slice(0, -2))) {
+                classMeta.addImportMeta(
+                  className2,
+                  this.classMap[className2]
+                );
+              }
+            }
+          } else {
+            classMeta.addImportMeta(
+              importName,
+              this.classMap[importName]
+            );
+          }
         });
       }
     }
@@ -5512,6 +5533,8 @@ var ClassManager = class {
 __publicField(ClassManager, "classMap", {});
 __publicField(ClassManager, "xTypeMap", {});
 __publicField(ClassManager, "aliasMap", {});
+__publicField(ClassManager, "controllerMap", {});
+__publicField(ClassManager, "vmMap", {});
 
 // src/Analyzer.js
 var ExtAnalyzer = class {
