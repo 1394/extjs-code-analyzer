@@ -5,10 +5,9 @@ export class ExtFileMeta {
     #code;
     #ast;
     definedClasses = [];
-    #codeTransform = [];
+    #codeTransforms = [];
     existingImports = [];
-
-    isTransformedCode;
+    isCodeTransformApplied = false;
 
     set ast(ast) {
         this.#ast = ast;
@@ -18,16 +17,16 @@ export class ExtFileMeta {
         return this.#ast;
     }
 
-    set code(ast) {
-        this.#code = ast;
+    set code(code) {
+        this.#code = code;
     }
 
     get code() {
         return this.#code;
     }
 
-    get codeTransform() {
-        return this.#codeTransform;
+    get codeTransforms() {
+        return this.#codeTransforms;
     }
 
     constructor(importPath, code, ast) {
@@ -40,9 +39,9 @@ export class ExtFileMeta {
         return this.#importPath;
     }
 
-    addCodeTransform(items) {
-        if (!items || !items.length) return;
-        this.#codeTransform = this.#codeTransform.concat(Array.isArray(items) ? items : [items]);
+    addCodeTransform(items = []) {
+        if (!items.length) return;
+        this.#codeTransforms = this.#codeTransforms.concat(items);
     }
 
     addDefinedClass(item) {
@@ -68,13 +67,13 @@ export class ExtFileMeta {
         return imports.length ? imports.map(({ realPath }) => realPath) : [];
     }
 
-    getTransformedCode() {
-        let transformedCode = this.code;
+    applyCodeTransforms() {
+        if (this.isCodeTransformApplied) return this.#code;
         // TODO maybe sort by start?
-        this.codeTransform.reverse().forEach(({ node, replacement }) => {
-            transformedCode = CodeUtils.replaceCode(transformedCode, node, replacement);
+        this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
+            this.#code = CodeUtils.replaceCode(this.#code, node, replacement);
         });
-        this.isTransformedCode = transformedCode === this.code;
-        return transformedCode;
+        this.isCodeTransformApplied = true;
+        return this.#code;
     }
 }

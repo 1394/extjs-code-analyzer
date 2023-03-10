@@ -41,6 +41,7 @@ export class CodeUtils {
         return `${fn}.apply(${argStr})`;
     }
 
+    //TODO fix test16
     static prepareTransforms(node, className, type) {
         const matches = [];
         simple(node, {
@@ -58,13 +59,17 @@ export class CodeUtils {
                                             node,
                                             type === 'override'
                                         );
-                                        matches.push({
-                                            node: {
-                                                start: node.start,
-                                                end: node.end,
-                                            },
-                                            replacement,
-                                        });
+                                        const existing = matches.find(
+                                            (m) => m.node.start === node.start && m.node.end === node.end
+                                        );
+                                        !existing &&
+                                            matches.push({
+                                                node: {
+                                                    start: node.start,
+                                                    end: node.end,
+                                                },
+                                                replacement,
+                                            });
                                     }
                                 },
                             });

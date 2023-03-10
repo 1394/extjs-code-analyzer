@@ -5404,6 +5404,7 @@ var CodeUtils = class {
     }
     return `${fn}.apply(${argStr})`;
   }
+  //TODO fix test16
   static prepareTransforms(node, className, type) {
     const matches = [];
     simple(node, {
@@ -5421,7 +5422,10 @@ var CodeUtils = class {
                       node2,
                       type === "override"
                     );
-                    matches.push({
+                    const existing = matches.find(
+                      (m) => m.node.start === node2.start && m.node.end === node2.end
+                    );
+                    !existing && matches.push({
                       node: {
                         start: node2.start,
                         end: node2.end
@@ -5454,23 +5458,23 @@ var ExtFileMeta = class {
   #code;
   #ast;
   definedClasses = [];
-  #codeTransform = [];
+  #codeTransforms = [];
   existingImports = [];
-  isTransformedCode;
+  isCodeTransformApplied = false;
   set ast(ast) {
     this.#ast = ast;
   }
   get ast() {
     return this.#ast;
   }
-  set code(ast) {
-    this.#code = ast;
+  set code(code) {
+    this.#code = code;
   }
   get code() {
     return this.#code;
   }
-  get codeTransform() {
-    return this.#codeTransform;
+  get codeTransforms() {
+    return this.#codeTransforms;
   }
   constructor(importPath, code, ast) {
     this.#importPath = importPath;
@@ -5480,10 +5484,10 @@ var ExtFileMeta = class {
   getImportPath() {
     return this.#importPath;
   }
-  addCodeTransform(items) {
-    if (!items || !items.length)
+  addCodeTransform(items = []) {
+    if (!items.length)
       return;
-    this.#codeTransform = this.#codeTransform.concat(Array.isArray(items) ? items : [items]);
+    this.#codeTransforms = this.#codeTransforms.concat(items);
   }
   addDefinedClass(item) {
     if (!item)
@@ -5506,13 +5510,14 @@ var ExtFileMeta = class {
     const imports = Object.values(this.getImportsMeta()).filter(Boolean);
     return imports.length ? imports.map(({ realPath }) => realPath) : [];
   }
-  getTransformedCode() {
-    let transformedCode = this.code;
-    this.codeTransform.reverse().forEach(({ node, replacement }) => {
-      transformedCode = CodeUtils.replaceCode(transformedCode, node, replacement);
+  applyCodeTransforms() {
+    if (this.isCodeTransformApplied)
+      return this.#code;
+    this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
+      this.#code = CodeUtils.replaceCode(this.#code, node, replacement);
     });
-    this.isTransformedCode = transformedCode === this.code;
-    return transformedCode;
+    this.isCodeTransformApplied = true;
+    return this.#code;
   }
 };
 
