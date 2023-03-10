@@ -5544,6 +5544,13 @@ var ClassManager = class {
       }
     }
   }
+  static classMapToJSON() {
+    const json = {};
+    for (const className in this.classMap) {
+      json[className] = this.classMap[className]["realPath"];
+    }
+    return JSON.stringify(json);
+  }
 };
 __publicField(ClassManager, "classMap", {});
 __publicField(ClassManager, "xTypeMap", {});

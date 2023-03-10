@@ -25,4 +25,12 @@ export class ClassManager {
             }
         }
     }
+
+    static classMapToJSON() {
+        const json = {};
+        for (const className in this.classMap) {
+            json[className] = this.classMap[className]['realPath'];
+        }
+        return JSON.stringify(json);
+    }
 }
