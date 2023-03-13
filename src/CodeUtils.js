@@ -35,6 +35,9 @@ export class CodeUtils {
         const args = this.argsToStr(node.arguments);
         const argStr = args.length ? `${scope}, ${args}` : scope;
         let fn = `(${className}.prototype || ${className})['${fnName}']`;
+        if (isOverride) {
+            fn = `(${fn}['$previous'] || ${fn})`;
+        }
         return `${fn}.apply(${argStr})`;
     }
 
