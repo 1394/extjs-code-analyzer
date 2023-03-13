@@ -5526,13 +5526,16 @@ var ExtFileMeta = class {
 
 // src/ClassManager.js
 var ClassManager = class {
-  static resolveViewModelAndController(classMeta) {
-    for (let type of ["controller", "viewModel"]) {
-      const name = classMeta[type];
-      if (typeof name === "string") {
-        const resolvedClassMeta = this.classMap[name] || this.aliasMap[`${type.toLowerCase()}.${name}`];
-        if (resolvedClassMeta) {
-          classMeta.addImportMeta(resolvedClassMeta.name, resolvedClassMeta);
+  static resolveAliases(classMeta) {
+    for (let cfg of this.aliasTypes) {
+      const values = Array.isArray(classMeta[cfg.type]) ? classMeta[cfg.type] : [classMeta[cfg.type]];
+      for (const value of values) {
+        if (typeof value === "string") {
+          const found = this.classMap[value] || this.aliasMap[`${(cfg.prefix || cfg.type).toLowerCase()}.${value}`];
+          if (found) {
+            this.classMap[found.name] = found;
+          }
+          classMeta.addImportMeta(found?.name || value, found);
         }
       }
     }
@@ -5556,7 +5559,7 @@ var ClassManager = class {
           }
         });
       }
-      this.resolveViewModelAndController(classMeta);
+      this.resolveAliases(classMeta);
     }
   }
   static classMapToJSON() {
@@ -5570,6 +5573,7 @@ var ClassManager = class {
 __publicField(ClassManager, "classMap", {});
 __publicField(ClassManager, "xTypeMap", {});
 __publicField(ClassManager, "aliasMap", {});
+__publicField(ClassManager, "aliasTypes", [{ type: "controller" }, { type: "viewModel" }, { type: "stores", prefix: "store" }]);
 
 // src/Analyzer.js
 var ExtAnalyzer = class {

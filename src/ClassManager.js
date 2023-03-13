@@ -2,14 +2,19 @@ export class ClassManager {
     static classMap = {};
     static xTypeMap = {};
     static aliasMap = {};
+    static aliasTypes = [{ type: 'controller' }, { type: 'viewModel' }, { type: 'stores', prefix: 'store' }];
 
-    static resolveViewModelAndController(classMeta) {
-        for (let type of ['controller', 'viewModel']) {
-            const name = classMeta[type];
-            if (typeof name === 'string') {
-                const resolvedClassMeta = this.classMap[name] || this.aliasMap[`${type.toLowerCase()}.${name}`];
-                if (resolvedClassMeta) {
-                    classMeta.addImportMeta(resolvedClassMeta.name, resolvedClassMeta);
+    static resolveAliases(classMeta) {
+        for (let cfg of this.aliasTypes) {
+            const values = Array.isArray(classMeta[cfg.type]) ? classMeta[cfg.type] : [classMeta[cfg.type]];
+            for (const value of values) {
+                if (typeof value === 'string') {
+                    const found =
+                        this.classMap[value] || this.aliasMap[`${(cfg.prefix || cfg.type).toLowerCase()}.${value}`];
+                    if (found) {
+                        this.classMap[found.name] = found;
+                    }
+                    classMeta.addImportMeta(found?.name || value, found);
                 }
             }
         }
@@ -33,7 +38,7 @@ export class ClassManager {
                     }
                 });
             }
-            this.resolveViewModelAndController(classMeta);
+            this.resolveAliases(classMeta);
         }
     }
 
