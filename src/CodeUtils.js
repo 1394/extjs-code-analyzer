@@ -41,7 +41,7 @@ export class CodeUtils {
         return `${fn}.apply(${argStr})`;
     }
 
-    static prepareTransforms(node, className) {
+    static prepareTransforms(node, className, type) {
         const dataNode = node.expression.arguments[1];
         const matches = [];
         simple(dataNode, {
@@ -54,7 +54,7 @@ export class CodeUtils {
                                 CallExpression: (node) => {
                                     if (node.callee?.property?.name === 'callParent') {
                                         const existing = matches.find(
-                                            (m) => m.node.start === node.start && m.node.end === node.end
+                                            (m) => m.node.start === node.start && m.node.end === node.end,
                                         );
                                         if (!existing) {
                                             matches.push({
@@ -62,7 +62,7 @@ export class CodeUtils {
                                                     start: node.start,
                                                     end: node.end,
                                                 },
-                                                replacement: this.getCallParentReplacement(className, fnName, node),
+                                                replacement: this.getCallParentReplacement(className, fnName, node, type === 'override'),
                                             });
                                         }
                                     }
