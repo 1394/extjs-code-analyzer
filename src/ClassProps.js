@@ -2,10 +2,13 @@ export class ExtClassProps {
     name = '';
     alias;
     xtype;
+    alternateNames = [];
     extend;
     override;
-    alternateNames = [];
     requires = [];
     uses = [];
     mixins = [];
+    stores = [];
+    controller;
+    viewModel;
 }

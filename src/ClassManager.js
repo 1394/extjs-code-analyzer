@@ -2,8 +2,18 @@ export class ClassManager {
     static classMap = {};
     static xTypeMap = {};
     static aliasMap = {};
-    static controllerMap = {};
-    static vmMap = {};
+
+    static resolveViewModelAndController(classMeta) {
+        for (let type of ['controller', 'viewModel']) {
+            const name = classMeta[type];
+            if (typeof name === 'string') {
+                const resolvedClassMeta = this.classMap[name] || this.aliasMap[`${type.toLowerCase()}.${name}`];
+                if (resolvedClassMeta) {
+                    classMeta.addImportMeta(resolvedClassMeta.name, resolvedClassMeta);
+                }
+            }
+        }
+    }
 
     static resolveImports(name) {
         const classes = name ? { [name]: this.classMap[name] } : this.classMap;
@@ -23,6 +33,7 @@ export class ClassManager {
                     }
                 });
             }
+            this.resolveViewModelAndController(classMeta);
         }
     }
 

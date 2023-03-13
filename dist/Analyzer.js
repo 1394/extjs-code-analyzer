@@ -5337,12 +5337,15 @@ var ExtClassProps = class {
   name = "";
   alias;
   xtype;
+  alternateNames = [];
   extend;
   override;
-  alternateNames = [];
   requires = [];
   uses = [];
   mixins = [];
+  stores = [];
+  controller;
+  viewModel;
 };
 
 // src/ClassMeta.js
@@ -5523,6 +5526,17 @@ var ExtFileMeta = class {
 
 // src/ClassManager.js
 var ClassManager = class {
+  static resolveViewModelAndController(classMeta) {
+    for (let type of ["controller", "viewModel"]) {
+      const name = classMeta[type];
+      if (typeof name === "string") {
+        const resolvedClassMeta = this.classMap[name] || this.aliasMap[`${type.toLowerCase()}.${name}`];
+        if (resolvedClassMeta) {
+          classMeta.addImportMeta(resolvedClassMeta.name, resolvedClassMeta);
+        }
+      }
+    }
+  }
   static resolveImports(name) {
     const classes = name ? { [name]: this.classMap[name] } : this.classMap;
     for (const className in classes) {
@@ -5542,6 +5556,7 @@ var ClassManager = class {
           }
         });
       }
+      this.resolveViewModelAndController(classMeta);
     }
   }
   static classMapToJSON() {
@@ -5555,8 +5570,6 @@ var ClassManager = class {
 __publicField(ClassManager, "classMap", {});
 __publicField(ClassManager, "xTypeMap", {});
 __publicField(ClassManager, "aliasMap", {});
-__publicField(ClassManager, "controllerMap", {});
-__publicField(ClassManager, "vmMap", {});
 
 // src/Analyzer.js
 var ExtAnalyzer = class {
@@ -5592,8 +5605,23 @@ var ExtAnalyzer = class {
                   CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name)
                 );
               }
-              if (["uses", "requires", "mixins"].includes(prop.key.name)) {
+              if (["uses", "requires", "mixins", "stores"].includes(prop.key.name)) {
                 classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
+              }
+              if (["controller", "viewModel"].includes(prop.key.name)) {
+                if (prop.value.type === "Literal") {
+                  classMeta[prop.key.name] = prop.value.value;
+                }
+                if (prop.value.type === "ObjectExpression") {
+                  if (prop.key.name === "viewModel") {
+                    const vmTypeNode = prop.value.properties.find(
+                      (p) => p.key.type === "Identifier" && p.key.name === "type"
+                    );
+                    if (vmTypeNode && vmTypeNode.value.type === "Literal") {
+                      classMeta[prop.key.name] = vmTypeNode.value.value;
+                    }
+                  }
+                }
               }
             });
             fileMeta.addDefinedClass(classMeta);
