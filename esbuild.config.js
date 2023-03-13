@@ -1,4 +1,4 @@
-import {context, build} from 'esbuild';
+import { context, build } from 'esbuild';
 
 const args = process.argv.slice(2);
 
@@ -11,7 +11,7 @@ const options = {
     platform: 'node',
     allowOverwrite: true,
     format: 'esm',
-}
+};
 if (isWatchMode) {
     const ctx = await context(options);
     await ctx.watch();
