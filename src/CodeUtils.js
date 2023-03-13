@@ -35,16 +35,13 @@ export class CodeUtils {
         const args = this.argsToStr(node.arguments);
         const argStr = args.length ? `${scope}, ${args}` : scope;
         let fn = `(${className}.prototype || ${className})['${fnName}']`;
-        if (isOverride) {
-            fn = `(${fn}['$previous'] || ${fn})`;
-        }
         return `${fn}.apply(${argStr})`;
     }
 
-    //TODO fix test16
-    static prepareTransforms(node, className, type) {
+    static prepareTransforms(node, className) {
+        const dataNode = node.expression.arguments[1];
         const matches = [];
-        simple(node, {
+        simple(dataNode, {
             Property: (prop) => {
                 if (prop.value?.type === 'FunctionExpression') {
                     const fnName = prop.key.name;
@@ -53,23 +50,18 @@ export class CodeUtils {
                             simple(fnBody, {
                                 CallExpression: (node) => {
                                     if (node.callee?.property?.name === 'callParent') {
-                                        const replacement = this.getCallParentReplacement(
-                                            className,
-                                            fnName,
-                                            node,
-                                            type === 'override'
-                                        );
                                         const existing = matches.find(
                                             (m) => m.node.start === node.start && m.node.end === node.end
                                         );
-                                        !existing &&
+                                        if (!existing) {
                                             matches.push({
                                                 node: {
                                                     start: node.start,
                                                     end: node.end,
                                                 },
-                                                replacement,
+                                                replacement: this.getCallParentReplacement(className, fnName, node),
                                             });
+                                        }
                                     }
                                 },
                             });

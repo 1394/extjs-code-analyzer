@@ -5,6 +5,9 @@
     "main": "index.js",
     "type": "module",
     "exports": {
+        "./src/Analyzer": {
+            "import": "./src/Analyzer.js"
+        },
         ".": {
             "import": "./dist/Analyzer.js"
         }
@@ -16,14 +19,13 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "dependencies": {
+    "devDependencies": {
         "acorn": "^8.8.2",
         "acorn-walk": "^8.2.0",
-        "fs-extra": "^11.1.0",
-        "globby": "^13.1.3"
-    },
-    "devDependencies": {
         "esbuild": "^0.17.11",
-        "prettier": "^2.8.4"
+        "fs-extra": "^11.1.0",
+        "globby": "^13.1.3",
+        "prettier": "^2.8.4",
+        "recast": "^0.22.0"
     }
 }

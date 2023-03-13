@@ -35,7 +35,7 @@ export class ExtFileMeta {
         ast && (this.ast = ast);
     }
 
-    getImportPath() {
+    get importPath() {
         return this.#importPath;
     }
 
@@ -68,8 +68,6 @@ export class ExtFileMeta {
     }
 
     applyCodeTransforms() {
-        if (this.isCodeTransformApplied) return this.#code;
-        // TODO maybe sort by start?
         this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
             this.#code = CodeUtils.replaceCode(this.#code, node, replacement);
         });
