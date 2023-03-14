@@ -1,4 +1,4 @@
-import { CodeUtils } from './CodeUtils.js';
+import {CodeUtils} from './CodeUtils.js';
 
 export class ExtFileMeta {
     #importPath;
@@ -8,6 +8,7 @@ export class ExtFileMeta {
     #codeTransforms = [];
     existingImports = [];
     isCodeTransformApplied = false;
+    isImportsInjected = false;
 
     set ast(ast) {
         this.#ast = ast;
@@ -56,7 +57,7 @@ export class ExtFileMeta {
 
     getImportsMeta() {
         const imports = {};
-        this.definedClasses.forEach(({ importsMeta }) => {
+        this.definedClasses.forEach(({importsMeta}) => {
             Object.assign(imports, importsMeta);
         });
         return imports;
@@ -64,11 +65,11 @@ export class ExtFileMeta {
 
     getImportsPaths() {
         const imports = Object.values(this.getImportsMeta()).filter(Boolean);
-        return imports.length ? imports.map(({ realPath }) => realPath) : [];
+        return imports.length ? imports.map(({realPath}) => realPath) : [];
     }
 
     applyCodeTransforms() {
-        this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
+        this.#codeTransforms.reverse().forEach(({node, replacement}) => {
             this.#code = CodeUtils.replaceCode(this.#code, node, replacement);
         });
         this.isCodeTransformApplied = true;

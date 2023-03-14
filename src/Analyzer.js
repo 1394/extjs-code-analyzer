@@ -95,4 +95,9 @@ export class ExtAnalyzer {
     static getFile(realPath) {
         return this.fileMap[realPath];
     }
+
+    /* static isSameCode(realPath, code) {
+        const fileMeta = this.getFile(realPath);
+        return fileMeta && fileMeta.code === code && fileMeta.isCodeTransformApplied && fileMeta.isImportsInjected;
+    } */
 }
