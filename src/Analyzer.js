@@ -5,13 +5,18 @@ import { ExtFileMeta } from './FileMeta.js';
 import { CodeUtils } from './CodeUtils.js';
 import { ClassManager } from './ClassManager.js';
 
+// TODO get parser from plugin
 export class ExtAnalyzer {
     static fileMap = {};
     static classManager = ClassManager;
+    static parserOptions = {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+    };
 
     static analyze(code = '', realPath, isResolveImports = false) {
         // TODO get options from vite || pass parse fn
-        const ast = parse(code, { ecmaVersion: 2020 });
+        const ast = parse(code, this.parserOptions);
         const fileMeta = new ExtFileMeta(realPath, code, ast);
         this.fileMap[realPath] = fileMeta;
         CodeUtils.code = code;
