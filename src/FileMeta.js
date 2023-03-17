@@ -9,6 +9,7 @@ export class ExtFileMeta {
     #codeTransforms = [];
     existingImports = [];
     isCached = false;
+    appliedTransformations = 0;
 
     set ast(ast) {
         this.#ast = ast;
@@ -80,7 +81,8 @@ export class ExtFileMeta {
         this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
             this.#transformedCode = CodeUtils.replaceCode(this.#transformedCode || this.#code, node, replacement);
         });
-        this.#codeTransforms.length && (this.#codeTransforms = []);
+        this.appliedTransformations = this.#codeTransforms.length;
+        this.appliedTransformations && (this.#codeTransforms = []);
         return this.#transformedCode || this.#code;
     }
 }
