@@ -27,14 +27,17 @@ export class ExtAnalyzer {
             ExpressionStatement: (node) => {
                 if (node.expression.callee?.object?.name === 'Ext') {
                     // Ext.define
-                    if (node.expression.callee.property.name === 'define') {
+                    //TODO add support Ext.Application requires
+                    const methodName = node.expression.callee.property.name;
+                    if (['define', 'application'].includes(methodName)) {
                         const name = node.expression.arguments[0].value;
                         const classMeta = new ExtClassMeta({
                             name,
                             realPath,
                         });
                         ClassManager.classMap[name] = classMeta;
-                        const props = node.expression.arguments[1].properties;
+                        const dataNode = node.expression.arguments[methodName === 'application' ? 0 : 1];
+                        const props = dataNode.properties;
                         props?.forEach((prop) => {
                             // alias
                             if (['alias', 'xtype'].includes(prop.key.name)) {
@@ -48,7 +51,7 @@ export class ExtAnalyzer {
                             if (['extend', 'override'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
                                 fileMeta.addCodeTransform(
-                                    CodeUtils.prepareTransforms(node, prop.value.value, prop.key.name)
+                                    CodeUtils.prepareTransforms(dataNode, prop.value.value, prop.key.name)
                                 );
                             }
                             // uses, requires, mixins, stores
