@@ -85,4 +85,8 @@ export class ExtFileMeta {
         this.appliedTransformations && (this.#codeTransforms = []);
         return this.#transformedCode || this.#code;
     }
+
+    getClassNames() {
+        return this.definedClasses.map(({ name }) => name);
+    }
 }
