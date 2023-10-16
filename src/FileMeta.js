@@ -77,6 +77,17 @@ export class ExtFileMeta {
         return imports.length ? imports.map(({ realPath }) => realPath) : [];
     }
 
+    getMissingImports(ignoredNamespaces = []) {
+        const imports = {};
+        this.definedClasses.map(({ name, importsMeta }) => {
+            imports[name] = Object.keys(importsMeta).filter((className) => {
+                const ns = className.split('.').shift();
+                return !ignoredNamespaces.length || (!ignoredNamespaces.includes(ns) && !importsMeta[className]);
+            });
+        });
+        return imports;
+    }
+
     applyCodeTransforms() {
         this.#codeTransforms.reverse().forEach(({ node, replacement }) => {
             this.#transformedCode = CodeUtils.replaceCode(this.#transformedCode || this.#code, node, replacement);
