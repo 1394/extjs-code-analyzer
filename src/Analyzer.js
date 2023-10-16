@@ -104,6 +104,10 @@ export class ExtAnalyzer {
         return this.fileMap[realPath];
     }
 
+    static getClass(className) {
+        return this.classManager.classMap[className];
+    }
+
     static sync(code, realPath) {
         const fileMeta = this.getFile(realPath);
         const isEqual = fileMeta && fileMeta.code === code;
