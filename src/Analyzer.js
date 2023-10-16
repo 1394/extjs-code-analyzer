@@ -39,8 +39,12 @@ export class ExtAnalyzer {
                         const dataNode = node.expression.arguments[methodName === 'application' ? 0 : 1];
                         const props = dataNode.properties;
                         props?.forEach((prop) => {
-                            // alias
-                            if (['alias', 'xtype'].includes(prop.key.name)) {
+                            // alias (can be array)
+                            if (['alias'].includes(prop.key.name)) {
+                                classMeta[prop.key.name] = CodeUtils.propToArray(prop.value);
+                            }
+                            // xtype
+                            if (['xtype'].includes(prop.key.name)) {
                                 classMeta[prop.key.name] = prop.value.value;
                             }
                             // alternateClassName
@@ -85,8 +89,10 @@ export class ExtAnalyzer {
                         if (classMeta.xtype) {
                             ClassManager.xTypeMap[classMeta.xtype] = classMeta;
                         }
-                        if (classMeta.alias) {
-                            ClassManager.aliasMap[classMeta.alias] = classMeta;
+                        if (Array.isArray(classMeta.alias)) {
+                            classMeta.alias.forEach((alias) => {
+                                ClassManager.aliasMap[alias] = classMeta;
+                            });
                         }
                     }
                 }
