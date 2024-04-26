@@ -1,8 +1,16 @@
 export class ClassManager {
     static classMap = {};
-    static xTypeMap = {};
+    static xtypeMap = {};
     static aliasMap = {};
-    static aliasTypes = [{ type: 'controller' }, { type: 'viewModel' }, { type: 'stores', prefix: 'store' }];
+    static aliasTypes = [
+        { type: 'controller' },
+        { type: 'viewModel' },
+        {
+            type: 'stores',
+            prefix: 'store',
+        },
+        { type: 'widget' },
+    ];
 
     static resolveAliases(classMeta) {
         for (let cfg of this.aliasTypes) {
@@ -46,6 +54,16 @@ export class ClassManager {
         const json = {};
         for (const className in this.classMap) {
             json[className] = this.classMap[className]['realPath'];
+        }
+        return JSON.stringify(json);
+    }
+
+    static propToJSON(prop, key = 'realPath') {
+        const json = {};
+        if (typeof this[prop] === 'object') {
+            for (const className in this[prop]) {
+                json[className] = this[prop][className][key];
+            }
         }
         return JSON.stringify(json);
     }

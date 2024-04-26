@@ -87,7 +87,7 @@ export class ExtAnalyzer {
                             });
                         }
                         if (classMeta.xtype) {
-                            ClassManager.xTypeMap[classMeta.xtype] = classMeta;
+                            ClassManager.xtypeMap[classMeta.xtype] = classMeta;
                         }
                         if (Array.isArray(classMeta.alias)) {
                             classMeta.alias.forEach((alias) => {
