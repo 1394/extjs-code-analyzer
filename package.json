@@ -1,7 +1,6 @@
 {
     "name": "extjs-code-analyzer",
-    "version": "0.1.9",
-    "author": "ivanovayu@sigma-it.ru",
+    "version": "0.2.0",
     "type": "module",
     "scripts": {
         "dev": "node esbuild.config.js --watch",
@@ -25,8 +24,5 @@
         "esbuild": "^0.17.11",
         "prettier": "^2.8.4",
         "recast": "^0.22.0"
-    },
-    "publishConfig": {
-        "registry": "https://nxs.sigma-it.ru/repository/npm-sigma-release/"
     }
 }
